@@ -57,11 +57,7 @@ def fit_forecast_model(y, freq, model, **kwargs):
     pandas2ri.activate()
 
     freq = deepcopy(freq)
-    if isinstance(freq, int):
-        freq = freq
-    else:
-        freq = IntVector(freq)
-
+    freq = freq if isinstance(freq, int) else IntVector(freq)
     rstring = """
      function(y, freq, ...){
          suppressMessages(library(forecast))
@@ -73,9 +69,7 @@ def fit_forecast_model(y, freq, model, **kwargs):
 
     rfunc = robjects.r(rstring)
 
-    fitted = rfunc(FloatVector(y), freq, **kwargs)
-
-    return fitted
+    return rfunc(FloatVector(y), freq, **kwargs)
 
 class ForecastModel(BaseEstimator, RegressorMixin):
     """Wrapper for models in the R package _forecast_ that returns a model.
@@ -106,9 +100,7 @@ class ForecastModel(BaseEstimator, RegressorMixin):
     def predict(self, h):
         check_is_fitted(self, 'fitted_model_')
 
-        y_hat = get_forecast(self.fitted_model_, h)
-
-        return y_hat
+        return get_forecast(self.fitted_model_, h)
 
 class ForecastObject(BaseEstimator, RegressorMixin):
     """Wrapper for models in the R package _forecast_ that returns an object.
@@ -141,9 +133,7 @@ class ForecastObject(BaseEstimator, RegressorMixin):
         check_is_fitted(self, 'y_ts_')
 
         fitted_model = fit_forecast_model(self.y_ts_, self.freq, self.model, h=h, **self.kwargs)
-        y_hat = get_forecast(fitted_model, h)
-
-        return y_hat
+        return get_forecast(fitted_model, h)
 
 class ARIMA(ForecastModel):
     """Wrapper of forecast::auto.arima from R.
