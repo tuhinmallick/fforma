@@ -56,7 +56,7 @@ class FFORMA:
             train_params = {**params, **init_params}
         else:
             train_params = {'n_estimators': 100}
-            train_params = {**train_params, **init_params}
+            train_params = train_params | init_params
 
 
         if param_grid is not None:
@@ -151,10 +151,7 @@ class FFORMA:
                     y_train_df = y_train_df.sort_index()
                     y_val_df = y_val_df.sort_index()
 
-        if errors is None:
-            pass
-            #calculate contribution_to_error(y_train_df, y_val_df)
-        else:
+        if errors is not None:
             _check_valid_columns(errors, cols=['unique_id'], cols_index=['unique_id'])
 
             best_models_count = errors.idxmin(axis=1).value_counts()
@@ -162,7 +159,7 @@ class FFORMA:
             loser_models = best_models_count[best_models_count.isna()].index.to_list()
 
             if len(loser_models) > 0:
-                print('Models {} never win.'.format(' '.join(loser_models)))
+                print(f"Models {' '.join(loser_models)} never win.")
                 print('Removing it...\n')
                 errors = errors.copy().drop(columns=loser_models)
 
@@ -241,6 +238,4 @@ class FFORMA:
         fforma_preds = weights * y_hat_df
         fforma_preds = fforma_preds.sum(axis=1)
         fforma_preds.name = name
-        preds = pd.concat([y_hat_df, fforma_preds], axis=1)
-
-        return preds
+        return pd.concat([y_hat_df, fforma_preds], axis=1)

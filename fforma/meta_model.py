@@ -180,8 +180,6 @@ def calc_errors(y_panel_df, y_insample_df, seasonality, benchmark_model='Naive2'
 
     errors = errors_smape/mean_mase_benchmark + errors_mase/mean_smape_benchmark
     errors = 0.5*errors
-    errors = errors
-
     return errors
 
 def get_prediction_panel(y_panel_df, h, freq):
@@ -200,6 +198,4 @@ def get_prediction_panel(y_panel_df, h, freq):
         df_ds['unique_id'] = unique_id
         predict_panel.append(df_ds[['unique_id', 'ds']])
 
-    predict_panel = pd.concat(predict_panel)
-
-    return predict_panel
+    return pd.concat(predict_panel)

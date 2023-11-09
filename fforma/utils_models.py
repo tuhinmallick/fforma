@@ -34,7 +34,7 @@ def _train_lightgbm(holdout_feats, best_models,
         dvalid = lgb.Dataset(data=holdout_feats_val, label=indices_val)
         valid_sets = [dtrain, dvalid]
 
-        gbm_model = lgb.train(
+        return lgb.train(
             params=params,
             train_set=dtrain,
             fobj=fobj,
@@ -42,7 +42,7 @@ def _train_lightgbm(holdout_feats, best_models,
             feval=feval,
             valid_sets=valid_sets,
             early_stopping_rounds=early_stopping_rounds,
-            verbose_eval=verbose_eval
+            verbose_eval=verbose_eval,
         )
     else:
 
@@ -50,17 +50,14 @@ def _train_lightgbm(holdout_feats, best_models,
         dvalid = lgb.Dataset(data=holdout_feats_val, label=best_models_val)
         valid_sets = [dtrain, dvalid]
 
-        gbm_model = lgb.train(
+        return lgb.train(
             params=params,
             train_set=dtrain,
             num_boost_round=num_round,
             valid_sets=valid_sets,
             early_stopping_rounds=early_stopping_rounds,
-            verbose_eval=verbose_eval
+            verbose_eval=verbose_eval,
         )
-
-
-    return gbm_model
 
 def _train_lightgbm_cv(holdout_feats, best_models,
                        params, fobj, feval,
@@ -105,13 +102,16 @@ def _train_lightgbm_cv(holdout_feats, best_models,
     if train_model:
         params['n_estimators'] = optimal_rounds
 
-        optimal_gbm_model = _train_lightgbm(holdout_feats, best_models,
-                                            params, fobj, feval,
-                                            early_stopping_rounds,
-                                            verbose_eval, seed)
-
-        return optimal_gbm_model
-
+        return _train_lightgbm(
+            holdout_feats,
+            best_models,
+            params,
+            fobj,
+            feval,
+            early_stopping_rounds,
+            verbose_eval,
+            seed,
+        )
     return optimal_rounds, best_performance
 
 def _train_lightgbm_grid_search(holdout_feats, best_models,
@@ -147,16 +147,20 @@ def _train_lightgbm_grid_search(holdout_feats, best_models,
 
         if performance < best_performance:
             #Updating  best performance
-            pbar.set_description('Best performance: {}'.format(performance))
+            pbar.set_description(f'Best performance: {performance}')
             #Updating bars
             best_params = params
             best_performance = performance
             best_params['n_estimators'] = num_round
 
 
-    optimal_gbm_model = _train_lightgbm(holdout_feats, best_models,
-                                        best_params, fobj, feval,
-                                        early_stopping_rounds,
-                                        False, seed)
-
-    return optimal_gbm_model
+    return _train_lightgbm(
+        holdout_feats,
+        best_models,
+        best_params,
+        fobj,
+        feval,
+        early_stopping_rounds,
+        False,
+        seed,
+    )
